@@ -48,6 +48,7 @@
       transition: background 0.2s;
     }
     .search button:hover { background: rgba(255,255,255,0.35); }
+    .location-button { padding: 12px 14px !important; }
     .temp { font-size: 3.5rem; font-weight: 700; margin: 16px 0; }
     .desc { font-size: 1.3rem; text-transform: capitalize; opacity: 0.9; }
     .city { font-size: 1.5rem; margin-bottom: 8px; }
@@ -74,6 +75,7 @@
     <div class="search">
       <input type="text" id="cityInput" placeholder="Search city..." onkeydown="if(event.key==='Enter') searchWeather()">
       <button onclick="searchWeather()">🔍</button>
+      <button class="location-button" onclick="useMyLocation()" title="Use my current location" aria-label="Use my current location">📍</button>
     </div>
     <div id="error" class="error" style="display:none;"></div>
     <div id="weather" style="display:none;">
@@ -98,8 +100,8 @@
     </div>
   </div>
   <script>
-    async function searchWeather() {
-      const city = document.getElementById('cityInput').value.trim();
+    async function searchWeather(cityOverride) {
+      const city = (cityOverride || document.getElementById('cityInput').value).trim();
       if (!city) return;
       document.getElementById('error').style.display = 'none';
       document.getElementById('card').classList.add('loading');
@@ -139,6 +141,36 @@
       document.getElementById('card').classList.remove('loading');
     }
 
+    function useMyLocation() {
+      const errorEl = document.getElementById('error');
+      if (!navigator.geolocation) {
+        errorEl.textContent = 'Location is not supported by this browser.';
+        errorEl.style.display = 'block';
+        return;
+      }
+      errorEl.style.display = 'none';
+      document.getElementById('card').classList.add('loading');
+      navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+        try {
+          const reverseRes = await fetch(`https://geocoding-api.open-meteo.com/v1/reverse?latitude=${coords.latitude}&longitude=${coords.longitude}&count=1`);
+          const place = await reverseRes.json();
+          const result = place.results && place.results[0];
+          if (!result) throw new Error('Could not identify your location');
+          document.getElementById('cityInput').value = result.name;
+          await searchWeather(result.name);
+        } catch (err) {
+          errorEl.textContent = err.message;
+          errorEl.style.display = 'block';
+        } finally {
+          document.getElementById('card').classList.remove('loading');
+        }
+      }, () => {
+        document.getElementById('card').classList.remove('loading');
+        errorEl.textContent = 'Location permission was denied. Search for a city instead.';
+        errorEl.style.display = 'block';
+      }, { enableHighAccuracy: true, timeout: 10000 });
+    }
+
     function weatherCodeToText(code) {
       const map = {0:'Clear sky',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Foggy',48:'Rime fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',71:'Light snow',73:'Snow',75:'Heavy snow',80:'Showers',81:'Showers',82:'Heavy showers',95:'Thunderstorm',96:'Thunderstorm + hail',99:'Thunderstorm + heavy hail'};
       return map[code] || 'Unknown';
@@ -150,3 +182,4 @@
   </script>
 </body>
 </html>
+
