@@ -4,6 +4,7 @@ A beautiful weather application with real-time data, city search, and 5-day fore
 
 ## Features
 - Search any city worldwide
+- Use browser geolocation to load weather near you
 - Current temperature, feels-like, humidity, wind speed
 - 5-day forecast
 - Weather condition descriptions
@@ -16,7 +17,7 @@ A beautiful weather application with real-time data, city search, and 5-day fore
 - [Open-Meteo Geocoding API](https://geocoding-api.open-meteo.com/) for city search
 
 ## Upcoming
-- [ ] Geolocation (auto-detect user's city)
+- [x] Geolocation (auto-detect user's city)
 - [ ] Hourly forecast view
 - [ ] Temperature unit toggle (°C / °F)
 - [ ] Weather alerts
@@ -24,3 +25,4 @@ A beautiful weather application with real-time data, city search, and 5-day fore
 
 ## Run
 Open `index.html` in any browser. No build step or API key required.
+
